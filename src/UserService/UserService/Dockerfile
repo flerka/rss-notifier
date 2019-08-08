@@ -1,19 +1,18 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch-slim AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 WORKDIR /app
-EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
-WORKDIR /src
-COPY ["UserService/UserService.csproj", "UserService/"]
-RUN dotnet restore "UserService/UserService.csproj"
-COPY . .
-WORKDIR "/src/UserService"
-RUN dotnet build "UserService.csproj" -c Release -o /app
+# copy csproj and restore as distinct layers
+COPY *.csproj ./UserService/
+WORKDIR /app/UserService
+RUN dotnet restore
 
-FROM build AS publish
-RUN dotnet publish "UserService.csproj" -c Release -o /app
+# copy and publish app and libraries
+WORKDIR /app/
+COPY . ./UserService/
+WORKDIR /app/UserService
+RUN dotnet publish -c Release -o out
 
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS runtime
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=build /app/UserService/out ./
 ENTRYPOINT ["dotnet", "UserService.dll"]

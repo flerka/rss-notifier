@@ -1,0 +1,14 @@
+version: '3'
+services:
+  user-service:
+    build: ./UserService
+    ports:
+      - "5000:80"
+    links:
+      - db 
+  db:
+    image: "postgres"
+    ports:
+      - 5432:5432
+    volumes:
+      - /private/var/lib/postgresql:/var/lib/postgresql
