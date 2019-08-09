@@ -1,0 +1,13 @@
+version: '3'
+services:
+  subscription-service:
+    build: .
+    ports:
+      - "5001:80"
+    links:
+      - db 
+  db:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    restart: always  

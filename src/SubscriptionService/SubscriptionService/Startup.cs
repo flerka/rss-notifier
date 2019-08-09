@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MediatR;
+using SubscriptionService.DataAccess;
 
 namespace SubscriptionService
 {
@@ -25,7 +26,14 @@ namespace SubscriptionService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var appSettingsSection = Configuration.GetSection("Storage");
+            services.Configure<MongoConnectionConfiguration>(appSettingsSection);
+            var appSettings = appSettingsSection.Get<MongoConnectionConfiguration>();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMediatR(typeof(Startup));
+            services.AddMongoSingleton(appSettings);
+            services.AddMongoCollection<RssFeed>(nameof(RssFeed));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
